@@ -8,6 +8,7 @@
 Sample new images from a pre-trained DiT.
 """
 import torch
+import os
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 from torchvision.utils import save_image
@@ -39,20 +40,22 @@ def main(args):
         num_classes=args.num_classes
     ).to(device)
     # Auto-download a pre-trained model or load a custom DiT checkpoint from train.py:
-    ckpt_path = args.ckpt or f"/root/autodl-tmp/pretrained_models/DiT/DiT-XL-2-{args.image_size}x{args.image_size}.pt"
+    #ckpt_path = args.ckpt or f"/root/autodl-tmp/pretrained_models/DiT/DiT-XL-2-{args.image_size}x{args.image_size}.pt"
+    ckpt_path = args.ckpt or f"D:/Projects/2026-MLS4Diffusion/TaylorSeer/TaylorSeer-DiT/pretrained_models/DiT-XL-2-{args.image_size}x{args.image_size}.pt"
     state_dict = find_model(ckpt_path)
     model.load_state_dict(state_dict)
-    model.eval()  # important!
+    model.eval()  # important! //切换到推理模式。非常重要。
     diffusion = create_diffusion(str(args.num_sampling_steps))
     #vae = AutoencoderKL.from_pretrained(f"stabilityai/sd-vae-ft-{args.vae}").to(device)
-    vae = AutoencoderKL.from_pretrained(f"/root/autodl-tmp/pretrained_models/stabilityai/sd-vae-ft-{args.vae}").to(device)
+    #vae = AutoencoderKL.from_pretrained(f"/root/autodl-tmp/pretrained_models/stabilityai/sd-vae-ft-{args.vae}").to(device)
+    vae = AutoencoderKL.from_pretrained(f"D:/Projects/2026-MLS4Diffusion/TaylorSeer/TaylorSeer-DiT/pretrained_models/sd-vae-ft-{args.vae}").to(device)
 
     # Labels to condition the model with (feel free to change):
     #class_labels = [207, 360, 387, 974, 88, 979, 417, 279,]
     #class_labels = [985, 130, 987, 130, 292, 289, 339, 385, 293, 397, 974, 814]
     # change ID number 15 to any other ImageNet category ID
     #class_labels = [985]
-    class_labels = [985]
+    class_labels = [985] #n11939491
 
 
     # Create sampling noise:
@@ -93,7 +96,8 @@ def main(args):
     samples = vae.decode(samples / 0.18215).sample
 
     # Save and display images:
-    save_image(samples, "sample.png", nrow=4, normalize=True, value_range=(-1, 1))
+    output_path = os.path.join(os.path.dirname(__file__), "sample.png")
+    save_image(samples, output_path, nrow=4, normalize=True, value_range=(-1, 1))
 
 
 if __name__ == "__main__":
@@ -103,7 +107,8 @@ if __name__ == "__main__":
     parser.add_argument("--image-size", type=int, choices=[256, 512], default=256)
     parser.add_argument("--num-classes", type=int, default=1000)
     parser.add_argument("--cfg-scale", type=float, default=1.5)
-    parser.add_argument("--num-sampling-steps", type=int, default=250)
+    # parser.add_argument("--num-sampling-steps", type=int, default=250)
+    parser.add_argument("--num-sampling-steps", type=int, default=50)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--ckpt", type=str, default=None,
                         help="Optional path to a DiT checkpoint (default: auto-download a pre-trained DiT-XL/2 model).")

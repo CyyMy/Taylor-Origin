@@ -23,6 +23,6 @@ def cache_init(model_kwargs, num_steps):
     
     current = {}
     current['num_steps'] = num_steps
-    current['activated_steps'] = [49]
+    current['activated_steps'] = [num_steps - 1]
     return cache_dic, current
     

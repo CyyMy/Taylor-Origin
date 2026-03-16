@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug sample.py (DDIM)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/sample.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "D:/AIs/ClaudeCode/project-1/TaylorSeer/TaylorSeer-DiT/TS-DiT/Scripts/python.exe",
+      "args": [
+        "--ddim-sample",
+        "--num-sampling-steps",
+        "50",
+        "--interval",
+        "4",
+        "--max-order",
+        "4"
+      ],
+      "justMyCode": false,
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    {
+      "name": "Debug sample.py (DDPM)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/sample.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "D:/AIs/ClaudeCode/project-1/TaylorSeer/TaylorSeer-DiT/TS-DiT/Scripts/python.exe",
+      "args": [
+        "--num-sampling-steps",
+        "50",
+        "--interval",
+        "4",
+        "--max-order",
+        "4"
+      ],
+      "justMyCode": false,
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  ]
+}

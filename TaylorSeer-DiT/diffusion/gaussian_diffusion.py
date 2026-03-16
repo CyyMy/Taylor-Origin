@@ -635,20 +635,25 @@ class GaussianDiffusion:
         Generate samples from the model using DDIM.
         Same usage as p_sample_loop().
         """
+        print("[ddim_sample_loop] start", flush=True)
         final = None
-        for sample in self.ddim_sample_loop_progressive(
-            model,
-            shape,
-            noise=noise,
-            clip_denoised=clip_denoised,
-            denoised_fn=denoised_fn,
-            cond_fn=cond_fn,
-            model_kwargs=model_kwargs,
-            device=device,
-            progress=progress,
-            eta=eta,
+        for loop_idx, sample in enumerate(
+            self.ddim_sample_loop_progressive(
+                model,
+                shape,
+                noise=noise,
+                clip_denoised=clip_denoised,
+                denoised_fn=denoised_fn,
+                cond_fn=cond_fn,
+                model_kwargs=model_kwargs,
+                device=device,
+                progress=progress,
+                eta=eta,
+            )
         ):
+            print(f"[ddim_sample_loop] received yield #{loop_idx}, sample type = {type(sample)}", flush=True)
             final = sample
+        print("[ddim_sample_loop] end, returning final['sample']", flush=True)
         return final["sample"]
 
     def ddim_sample_loop_progressive(
@@ -669,14 +674,18 @@ class GaussianDiffusion:
         each timestep of DDIM.
         Same usage as p_sample_loop_progressive().
         """
+        print("[ddim_sample_loop_progressive] start", flush=True)
         if device is None:
             device = next(model.parameters()).device
         assert isinstance(shape, (tuple, list))
         if noise is not None:
             img = noise
+            print("[ddim_sample_loop_progressive] use provided noise as initial img", flush=True)
         else:
             img = th.randn(*shape, device=device)
+            print("[ddim_sample_loop_progressive] create random initial img", flush=True)
         indices = list(range(self.num_timesteps))[::-1]
+        print(f"[ddim_sample_loop_progressive] total timesteps = {len(indices)}", flush=True)
 
         if progress:
             # Lazy import so that we don't depend on tqdm.
@@ -684,10 +693,13 @@ class GaussianDiffusion:
 
             indices = tqdm(indices)
 
-        # Initialization for ToCa     
+        # Initialization for ToCa
         cache_dic, current = cache_init(model_kwargs=model_kwargs, num_steps=self.num_timesteps)
+        print(f"[ToCa] num_steps={self.num_timesteps}, interval={cache_dic['interval']}, max_order={cache_dic['max_order']}", flush=True)
+        print("[ddim_sample_loop_progressive] cache initialized", flush=True)
 
-        for i in indices:
+        for iter_idx, i in enumerate(indices):
+            print(f"[ddim_sample_loop_progressive] loop #{iter_idx} begin, timestep = {i}", flush=True)
             t = th.tensor([i] * shape[0], device=device)
             with th.no_grad():
                 current['step'] = i
@@ -703,8 +715,13 @@ class GaussianDiffusion:
                     model_kwargs=model_kwargs,
                     eta=eta,
                 )
+                print(f"[ToCa] timestep={i:02d} -> type={current['type']}", flush=True)
+                print(f"[ddim_sample_loop_progressive] loop #{iter_idx} yield out", flush=True)
                 yield out
+                print(f"[ddim_sample_loop_progressive] loop #{iter_idx} resumed after yield", flush=True)
                 img = out["sample"]
+                print(f"[ddim_sample_loop_progressive] loop #{iter_idx} updated img from out['sample']", flush=True)
+        print("[ddim_sample_loop_progressive] end", flush=True)
         if cache_dic['test_FLOPs'] == True:
             print(cache_dic['flops'] * 1e-12, "TFLOPs")
 
